@@ -1,0 +1,23 @@
+repositorio machine learning
+https://archive.ics.uci.edu/dataset/350/default%2Bof%2Bcredit%2Bcard%2Bclients
+
+se extrae con script python
+import pip
+try:
+    import ucimlrepo
+except ImportError:
+    %pip install ucimlrepo
+from ucimlrepo import fetch_ucirepo
+
+# obtener conjunto de datos
+default_of_credit_card_clients = fetch_ucirepo(id=350)
+
+# datos (como dataframes de pandas)
+X = default_of_credit_card_clients.data.features
+y = default_of_credit_card_clients.data.targets
+
+# metadatos
+print(default_of_credit_card_clients.metadata)
+
+# información variable
+print(default_of_credit_card_clients.metadata['additional_info']['variable_info'])

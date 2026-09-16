@@ -1,0 +1,76 @@
+ Estructura final de las 4 fuentes estructuradas
+Fuente	Gestor		Antes		Ahora		Reducción
+1	MySQL 8.0	40+ tablas	15 tablas	-62%
+2	PostgreSQL 15	11 tablas	5 tablas	-55%
+3	SQL Server 2022	10 tablas	4 tablas	-60%
+4	MariaDB 10.6	12 tablas	4 tablas	-67%
+	Total		73		28		-62%
+
+
+🔹 FUENTE 1: BASE OPERACIONAL DEL SISTEMA DE PRÉSTAMOS
+Gestor: MySQL 8.0 / InnoDB
+15 tablas organizadas en 3 grupos
+
+GRUPO A: CATÁLOGOS (7 tablas)
+#	Tabla	PK	FK	Propósito
+1	tipo_identificacion	tipo_id	—	CI, NIT, Pasaporte
+2	departamento	depto_id	—	Departamentos Bolivia
+3	tipo_producto	tipo_prod_id	—	Crédito personal, empresarial, microcrédito
+4	tipo_pago	tipo_pago_id	—	Cuota, anticipado, refinanciación
+5	tipo_garantia	tipo_garantia_id	—	Prenda, hipoteca, aval
+6	estado_prestamo_tipo	estado_id	—	Vigente, pagado, vencido, incobrable
+7	tipo_rechazo	tipo_rechazo_id	—	Score insuficiente, documentación, ratio
+
+GRUPO B: ENTIDADES (4 tablas)
+#	Tabla	PK	FK	Propósito
+8	cliente	cliente_id	tipo_id	Datos básicos del cliente
+9	caracteristica_cliente	carac_id	cliente_id	Datos personales (1:1)
+10	producto_crediticio	producto_id	tipo_prod_id	Productos ofrecidos
+11	agencia	agencia_id	depto_id	Sucursales
+
+GRUPO C: TRANSACCIONES (4 tablas)
+#	Tabla	PK	FK	Propósito
+12	solicitud_credito	solicitud_id	cliente_id, producto_id	Solicitudes
+13	prestamo	prestamo_id	solicitud_id, cliente_id, producto_id	Préstamos otorgados
+14	pago	pago_id	prestamo_id, cliente_id, tipo_pago_id	Pagos realizados
+15	garantia	garantia_id	prestamo_id, tipo_garantia_id	Garantías
+
+🔹 FUENTE 2: PROCESOS PENALES Y ANTECEDENTES
+Gestor: PostgreSQL 15
+5 tablas
+
+#	Tabla	PK	FK	Propósito
+1	categoria_delito	categoria_delito_id	—	Violento, económico, fraude
+2	tipo_delito	tipo_delito_id	categoria_delito_id	Estafa, incumplimiento, violencia
+3	estado_proceso_penal	estado_proceso_id	—	Investigación, juzgado, ejecutoria
+4	proceso_penal	proceso_id	tipo_delito_id, estado_proceso_id	Procesos judiciales
+5	consolidado_antecedentes	antecedente_id	—	Resumen por persona
+
+🔹 FUENTE 3: DEUDORES MOROSOS
+Gestor: SQL Server 2022
+4 tablas
+
+#	Tabla	PK	FK	Propósito
+1	tipo_entidad_financiera	tipo_entidad_id	—	Banco, cooperativa, financiera
+2	deudor_central_riesgos	deudor_id	—	Deudores consolidados
+3	deuda_cr	deuda_id	deudor_id, entidad_financiera_id	Deudas por entidad
+4	score_riesgo_cr	score_cr_id	deudor_id	Score de morosidad
+
+🔹 FUENTE 4: REGISTRO MERCANTIL Y EMPRESARIAL
+Gestor: MariaDB 10.6
+4 tablas
+
+#	Tabla	PK	FK	Propósito
+1	tipo_empresa_rm	tipo_empresa_id	—	Sociedad anónima, SRL, unipersonal
+2	empresa_registro_mercantil	empresa_id	tipo_empresa_id	Empresas registradas
+3	accionista_representante_rm	participante_id	empresa_id	Accionistas y representantes
+4	situacion_tributaria_rm	situacion_tributaria_id	empresa_id	Situación tributaria
+
+
+
+
+
+
+
+
+

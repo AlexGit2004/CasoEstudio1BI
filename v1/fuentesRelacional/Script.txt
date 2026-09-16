@@ -1,0 +1,317 @@
+-- ========================================
+-- FUENTE 1: BASE OPERACIONAL PRÉSTAMOS
+-- Gestor: MySQL 8.0 / InnoDB
+-- 15 tablas: 7 catálogos + 4 entidades + 4 transacciones
+-- ========================================
+
+CREATE DATABASE IF NOT EXISTS babsa_creditos
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE babsa_creditos;
+
+-- ========================================
+-- GRUPO A: CATÁLOGOS (7 tablas)
+-- ========================================
+
+CREATE TABLE tipo_identificacion (
+  tipo_id INT PRIMARY KEY AUTO_INCREMENT,
+  tipo_nombre VARCHAR(20) NOT NULL UNIQUE,
+  descripcion VARCHAR(100)
+) ENGINE=InnoDB;
+
+CREATE TABLE departamento (
+  depto_id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre_depto VARCHAR(50) NOT NULL UNIQUE,
+  codigo_iso VARCHAR(5) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+CREATE TABLE tipo_producto (
+  tipo_prod_id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre_tipo VARCHAR(100) NOT NULL UNIQUE,
+  descripcion TEXT
+) ENGINE=InnoDB;
+
+CREATE TABLE tipo_pago (
+  tipo_pago_id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre_tipo VARCHAR(50) NOT NULL UNIQUE,
+  descripcion TEXT
+) ENGINE=InnoDB;
+
+CREATE TABLE tipo_garantia (
+  tipo_garantia_id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre_tipo VARCHAR(50) NOT NULL UNIQUE,
+  descripcion TEXT,
+  requiere_avaluo BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB;
+
+CREATE TABLE estado_prestamo_tipo (
+  estado_id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre_estado VARCHAR(50) NOT NULL UNIQUE,
+  descripcion TEXT,
+  es_estado_terminal BOOLEAN DEFAULT FALSE
+) ENGINE=InnoDB;
+
+CREATE TABLE tipo_rechazo (
+  tipo_rechazo_id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre_motivo VARCHAR(150) NOT NULL UNIQUE,
+  descripcion TEXT,
+  categoria ENUM('Riesgo Crediticio','Capacidad Pago','Documentación','Fraude','Política Interna')
+) ENGINE=InnoDB;
+
+-- ========================================
+-- GRUPO B: ENTIDADES (4 tablas)
+-- ========================================
+
+CREATE TABLE cliente (
+  cliente_id INT PRIMARY KEY AUTO_INCREMENT,
+  numero_identificacion VARCHAR(20) NOT NULL UNIQUE,
+  tipo_id INT NOT NULL,
+  nombre_completo VARCHAR(100) NOT NULL,
+  apellido_paterno VARCHAR(50),
+  apellido_materno VARCHAR(50),
+  estado_cliente ENUM('Activo','Inactivo','Bloqueado') DEFAULT 'Activo',
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tipo_id) REFERENCES tipo_identificacion(tipo_id),
+  INDEX idx_numero_identificacion (numero_identificacion)
+) ENGINE=InnoDB;
+
+CREATE TABLE caracteristica_cliente (
+  carac_id INT PRIMARY KEY AUTO_INCREMENT,
+  cliente_id INT NOT NULL UNIQUE,
+  fecha_nacimiento DATE,
+  sexo ENUM('M','F','O'),
+  estado_civil ENUM('S','C','D','V'),
+  nacionalidad VARCHAR(50),
+  profesion VARCHAR(100),
+  FOREIGN KEY (cliente_id) REFERENCES cliente(cliente_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE producto_crediticio (
+  producto_id INT PRIMARY KEY AUTO_INCREMENT,
+  tipo_prod_id INT NOT NULL,
+  nombre_producto VARCHAR(100) NOT NULL UNIQUE,
+  tasa_interes_base DECIMAL(5,2) NOT NULL,
+  plazo_minimo_meses INT,
+  plazo_maximo_meses INT,
+  monto_minimo_bs DECIMAL(12,2),
+  monto_maximo_bs DECIMAL(12,2),
+  estado_producto ENUM('Vigente','Descontinuado') DEFAULT 'Vigente',
+  FOREIGN KEY (tipo_prod_id) REFERENCES tipo_producto(tipo_prod_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE agencia (
+  agencia_id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre_agencia VARCHAR(100) NOT NULL,
+  codigo_agencia VARCHAR(10) NOT NULL UNIQUE,
+  depto_id INT NOT NULL,
+  direccion_agencia VARCHAR(200),
+  tipo_agencia ENUM('Matriz','Sucursal','Corresponsal') DEFAULT 'Sucursal',
+  estado_agencia ENUM('Activa','En Remodelación','Cerrada') DEFAULT 'Activa',
+  FOREIGN KEY (depto_id) REFERENCES departamento(depto_id)
+) ENGINE=InnoDB;
+
+-- ========================================
+-- GRUPO C: TRANSACCIONES (4 tablas)
+-- ========================================
+
+CREATE TABLE solicitud_credito (
+  solicitud_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  cliente_id INT NOT NULL,
+  producto_id INT NOT NULL,
+  fecha_solicitud DATE NOT NULL,
+  monto_solicitado_bs DECIMAL(12,2),
+  plazo_solicitado_meses INT,
+  estado_solicitud ENUM('Pendiente Análisis','Aprobada','Rechazada','Cancelada','Desembolsada') DEFAULT 'Pendiente Análisis',
+  FOREIGN KEY (cliente_id) REFERENCES cliente(cliente_id),
+  FOREIGN KEY (producto_id) REFERENCES producto_crediticio(producto_id),
+  INDEX idx_estado_solicitud (estado_solicitud),
+  INDEX idx_fecha_solicitud (fecha_solicitud)
+) ENGINE=InnoDB;
+
+CREATE TABLE prestamo (
+  prestamo_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  solicitud_id BIGINT NOT NULL UNIQUE,
+  cliente_id INT NOT NULL,
+  producto_id INT NOT NULL,
+  agencia_id INT NOT NULL,
+  fecha_originacion DATE NOT NULL,
+  monto_aprobado_bs DECIMAL(12,2),
+  tasa_interes_aplicada DECIMAL(5,2),
+  plazo_aprobado_meses INT,
+  cuota_mensual_bs DECIMAL(10,2),
+  saldo_actual_bs DECIMAL(12,2),
+  dias_atraso INT DEFAULT 0,
+  estado_prestamo ENUM('Vigente','Pagado','Renovado','Vencido','Incobrable') DEFAULT 'Vigente',
+  FOREIGN KEY (solicitud_id) REFERENCES solicitud_credito(solicitud_id),
+  FOREIGN KEY (cliente_id) REFERENCES cliente(cliente_id),
+  FOREIGN KEY (producto_id) REFERENCES producto_crediticio(producto_id),
+  FOREIGN KEY (agencia_id) REFERENCES agencia(agencia_id),
+  INDEX idx_estado_prestamo (estado_prestamo),
+  INDEX idx_fecha_originacion (fecha_originacion)
+) ENGINE=InnoDB;
+
+CREATE TABLE pago (
+  pago_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  prestamo_id BIGINT NOT NULL,
+  cliente_id INT NOT NULL,
+  tipo_pago_id INT NOT NULL,
+  fecha_pago DATE NOT NULL,
+  monto_pagado_bs DECIMAL(10,2),
+  numero_cuota INT,
+  dias_atraso_al_pago INT DEFAULT 0,
+  estado_pago ENUM('Procesado','Rechazado','Anulado','Pendiente') DEFAULT 'Procesado',
+  FOREIGN KEY (prestamo_id) REFERENCES prestamo(prestamo_id),
+  FOREIGN KEY (cliente_id) REFERENCES cliente(cliente_id),
+  FOREIGN KEY (tipo_pago_id) REFERENCES tipo_pago(tipo_pago_id),
+  INDEX idx_fecha_pago (fecha_pago)
+) ENGINE=InnoDB;
+
+CREATE TABLE garantia (
+  garantia_id INT PRIMARY KEY AUTO_INCREMENT,
+  prestamo_id BIGINT NOT NULL,
+  tipo_garantia_id INT NOT NULL,
+  descripcion_bien TEXT,
+  valor_avaluo_bs DECIMAL(12,2),
+  fecha_avaluo DATE,
+  cobertura_prestamo_porcentaje DECIMAL(5,2),
+  estado_garantia ENUM('Vigente','Ejecutada','Liberada','Transferida') DEFAULT 'Vigente',
+  FOREIGN KEY (prestamo_id) REFERENCES prestamo(prestamo_id) ON DELETE CASCADE,
+  FOREIGN KEY (tipo_garantia_id) REFERENCES tipo_garantia(tipo_garantia_id)
+) ENGINE=InnoDB;
+
+
+-----------------------------------------
+CREATE DATABASE babsa_procesos_penales
+  WITH ENCODING = 'UTF8' LC_COLLATE = 'es_BO.UTF-8' LC_CTYPE = 'es_BO.UTF-8';
+
+\c babsa_procesos_penales;
+
+CREATE TABLE categoria_delito (
+  categoria_delito_id SERIAL PRIMARY KEY,
+  nombre_categoria VARCHAR(50) NOT NULL UNIQUE,
+  descripcion TEXT
+);
+
+CREATE TABLE tipo_delito (
+  tipo_delito_id SERIAL PRIMARY KEY,
+  categoria_delito_id INTEGER NOT NULL,
+  nombre_delito VARCHAR(150) NOT NULL UNIQUE,
+  codigo_penal VARCHAR(20),
+  FOREIGN KEY (categoria_delito_id) REFERENCES categoria_delito(categoria_delito_id)
+);
+
+CREATE TABLE estado_proceso_penal (
+  estado_proceso_id SERIAL PRIMARY KEY,
+  nombre_estado VARCHAR(50) NOT NULL UNIQUE,
+  es_terminal BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE proceso_penal (
+  proceso_id SERIAL PRIMARY KEY,
+  numero_identificacion_acusado VARCHAR(20) NOT NULL,
+  numero_proceso VARCHAR(50) NOT NULL UNIQUE,
+  tipo_delito_id INTEGER NOT NULL,
+  estado_proceso_id INTEGER NOT NULL,
+  juzgado_origen VARCHAR(150),
+  fecha_inicio_proceso DATE NOT NULL,
+  fecha_ultima_actuacion DATE,
+  FOREIGN KEY (tipo_delito_id) REFERENCES tipo_delito(tipo_delito_id),
+  FOREIGN KEY (estado_proceso_id) REFERENCES estado_proceso_penal(estado_proceso_id)
+);
+
+CREATE INDEX idx_proceso_num_id ON proceso_penal(numero_identificacion_acusado);
+
+CREATE TABLE consolidado_antecedentes (
+  antecedente_id SERIAL PRIMARY KEY,
+  numero_identificacion VARCHAR(20) NOT NULL UNIQUE,
+  tiene_antecedentes_penales BOOLEAN DEFAULT FALSE,
+  cantidad_procesos_activos INTEGER DEFAULT 0,
+  cantidad_sentencias_condenatorias INTEGER DEFAULT 0,
+  fecha_ultima_actualizacion DATE
+);
+------------------------------------
+CREATE DATABASE babsa_central_riesgos;
+GO
+
+USE babsa_central_riesgos;
+GO
+
+CREATE TABLE tipo_entidad_financiera (
+  tipo_entidad_id INT PRIMARY KEY IDENTITY(1,1),
+  nombre_tipo VARCHAR(50) NOT NULL UNIQUE,
+  descripcion TEXT
+);
+
+CREATE TABLE deudor_central_riesgos (
+  deudor_id INT PRIMARY KEY IDENTITY(1,1),
+  numero_identificacion VARCHAR(20) NOT NULL UNIQUE,
+  tipo_persona VARCHAR(50) CHECK (tipo_persona IN ('Natural','Jurídica')),
+  cantidad_instituciones_acreedor INT,
+  monto_total_deuda_bs NUMERIC(14,2),
+  fecha_ultima_consulta DATE
+);
+
+CREATE TABLE deuda_cr (
+  deuda_id BIGINT PRIMARY KEY IDENTITY(1,1),
+  deudor_id INT NOT NULL,
+  entidad_financiera_id INT NOT NULL,
+  tipo_obligacion VARCHAR(50),
+  monto_deuda_actual_bs NUMERIC(12,2),
+  dias_atraso_actual INT DEFAULT 0,
+  fecha_originacion DATE,
+  FOREIGN KEY (deudor_id) REFERENCES deudor_central_riesgos(deudor_id)
+);
+
+CREATE TABLE score_riesgo_cr (
+  score_cr_id BIGINT PRIMARY KEY IDENTITY(1,1),
+  deudor_id INT NOT NULL UNIQUE,
+  categoria_riesgo VARCHAR(50),
+  score_morosidad NUMERIC(5,2),
+  fecha_calculo DATE,
+  FOREIGN KEY (deudor_id) REFERENCES deudor_central_riesgos(deudor_id)
+);
+-------------------------------------
+CREATE DATABASE IF NOT EXISTS babsa_comercio
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE babsa_comercio;
+
+CREATE TABLE tipo_empresa_rm (
+  tipo_empresa_id INT PRIMARY KEY AUTO_INCREMENT,
+  nombre_tipo VARCHAR(100) NOT NULL UNIQUE,
+  descripcion TEXT
+) ENGINE=InnoDB;
+
+CREATE TABLE empresa_registro_mercantil (
+  empresa_id INT PRIMARY KEY AUTO_INCREMENT,
+  nit_empresa VARCHAR(20) NOT NULL UNIQUE,
+  tipo_empresa_id INT NOT NULL,
+  razon_social VARCHAR(200) NOT NULL,
+  fecha_constitucion DATE NOT NULL,
+  capital_pagado_bs DECIMAL(14,2),
+  departamento_inscripcion VARCHAR(50),
+  FOREIGN KEY (tipo_empresa_id) REFERENCES tipo_empresa_rm(tipo_empresa_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE accionista_representante_rm (
+  participante_id INT PRIMARY KEY AUTO_INCREMENT,
+  empresa_id INT NOT NULL,
+  numero_identificacion VARCHAR(20),
+  nombre_completo VARCHAR(150),
+  tipo_participacion VARCHAR(50),
+  porcentaje_participacion DECIMAL(5,2),
+  FOREIGN KEY (empresa_id) REFERENCES empresa_registro_mercantil(empresa_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE situacion_tributaria_rm (
+  situacion_tributaria_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  empresa_id INT NOT NULL,
+  año_fiscal INT,
+  impuestos_adeudados_bs DECIMAL(12,2),
+  estado_tributario VARCHAR(50),
+  fecha_actualizacion DATE,
+  FOREIGN KEY (empresa_id) REFERENCES empresa_registro_mercantil(empresa_id)
+) ENGINE=InnoDB;
+-------------------------------------

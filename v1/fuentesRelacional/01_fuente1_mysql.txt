@@ -1,0 +1,84 @@
+
+INSERT INTO tipo_identificacion (tipo_id, tipo_nombre, descripcion) VALUES
+(1, 'CI',        'Cédula de Identidad'),
+(2, 'NIT',       'Número de Impuesto al Valor'),
+(3, 'PASAPORTE', 'Pasaporte Internacional');
+
+INSERT INTO departamento (depto_id, nombre_depto, codigo_iso) VALUES
+(1, 'La Paz',     'LP'),
+(2, 'Cochabamba', 'CB'),
+(3, 'Santa Cruz', 'SC'),
+(4, 'Oruro',      'OR');
+
+INSERT INTO tipo_producto (tipo_prod_id, nombre_tipo, descripcion) VALUES
+(1, 'Crédito Personal',    'Crédito de consumo personal'),
+(2, 'Crédito Empresarial', 'Crédito para empresas'),
+(3, 'Microcrédito',        'Crédito para micro-emprendimientos');
+
+INSERT INTO tipo_pago (tipo_pago_id, nombre_tipo, descripcion) VALUES
+(1, 'Cuota Ordinaria', 'Pago de cuota mensual regular'),
+(2, 'Pago Anticipado', 'Pago adelantado de cuota'),
+(3, 'Refinanciación',  'Pago por refinanciación');
+
+INSERT INTO tipo_garantia (tipo_garantia_id, nombre_tipo, descripcion, requiere_avaluo) VALUES
+(1, 'Prenda',   'Prenda sobre bien mueble', TRUE),
+(2, 'Hipoteca', 'Hipoteca sobre inmueble',  TRUE),
+(3, 'Aval',     'Garantía personal',        FALSE);
+
+INSERT INTO estado_prestamo_tipo (estado_id, nombre_estado, descripcion, es_estado_terminal) VALUES
+(1, 'Vigente', 'Préstamo al día',     FALSE),
+(2, 'Pagado',  'Préstamo cancelado',  TRUE),
+(3, 'Vencido', 'Préstamo con atraso', FALSE);
+
+INSERT INTO tipo_rechazo (tipo_rechazo_id, nombre_motivo, descripcion, categoria) VALUES
+(23001, 'Score Crediticio Insuficiente', 'Score por debajo del mínimo',     'Riesgo Crediticio'),
+(23002, 'Documentación Incompleta',      'Falta de documentos',            'Documentación'),
+(23003, 'Ratio Deuda/Ingreso Excesivo',  'Capacidad de pago insuficiente', 'Capacidad Pago');
+
+-- ----------------------------------------
+-- GRUPO B: ENTIDADES
+-- ----------------------------------------
+
+INSERT INTO cliente (cliente_id, numero_identificacion, tipo_id, nombre_completo, apellido_paterno, apellido_materno, estado_cliente, fecha_creacion) VALUES
+(1001, '4567891-0', 1, 'Juan Carlos López', 'Pérez', 'Gómez',     'Activo', '2024-01-15 00:00:00'),
+(1002, '7234567-2', 1, 'María Rosa García', 'López', 'Fernández', 'Activo', '2024-01-15 00:00:00'),
+(1003, '8901234-5', 2, 'Empresa XYZ S.A.',  NULL,    NULL,        'Activo', '2024-01-15 00:00:00');
+
+INSERT INTO caracteristica_cliente (carac_id, cliente_id, fecha_nacimiento, sexo, estado_civil, nacionalidad, profesion) VALUES
+(1, 1001, '1985-03-15', 'M', 'C', 'Boliviana', 'Ingeniero'),
+(2, 1002, '1990-07-22', 'F', 'S', 'Boliviana', 'Contadora'),
+(3, 1003, '1998-01-10', 'O', 'S', 'Boliviana', 'Comerciante');
+
+INSERT INTO producto_crediticio (producto_id, tipo_prod_id, nombre_producto, tasa_interes_base, plazo_minimo_meses, plazo_maximo_meses, monto_minimo_bs, monto_maximo_bs, estado_producto) VALUES
+(501, 1, 'Crédito Libre',      18.50, 12, 60,  5000.00,  250000.00, 'Vigente'),
+(502, 2, 'PyME Impulso',       15.75, 24, 120, 50000.00, 500000.00, 'Vigente'),
+(503, 3, 'Microcrédito Mujer', 22.00, 6,  36,  500.00,   50000.00,  'Vigente');
+
+INSERT INTO agencia (agencia_id, nombre_agencia, codigo_agencia, depto_id, direccion_agencia, tipo_agencia, estado_agencia) VALUES
+(10, 'BABSA Matriz La Paz',    'LP-001', 1, 'Av. Arce 2000',      'Matriz',   'Activa'),
+(11, 'BABSA Sucursal El Alto', 'LP-002', 1, 'Av. Juan Pablo II',  'Sucursal', 'Activa'),
+(12, 'BABSA Centro',           'LP-003', 1, 'Calle Comercio 150', 'Sucursal', 'Activa');
+
+-- ----------------------------------------
+-- GRUPO C: TRANSACCIONES
+-- ----------------------------------------
+
+INSERT INTO solicitud_credito (solicitud_id, cliente_id, producto_id, fecha_solicitud, monto_solicitado_bs, plazo_solicitado_meses, estado_solicitud) VALUES
+(70001, 1001, 501, '2024-09-01', 25000.00,  36, 'Desembolsada'),
+(70002, 1002, 502, '2024-09-05', 150000.00, 60, 'Desembolsada'),
+(70003, 1003, 501, '2024-09-08', 18000.00,  24, 'Rechazada');
+
+INSERT INTO prestamo (prestamo_id, solicitud_id, cliente_id, producto_id, agencia_id, fecha_originacion, monto_aprobado_bs, tasa_interes_aplicada, plazo_aprobado_meses, cuota_mensual_bs, saldo_actual_bs, dias_atraso, estado_prestamo) VALUES
+(50001, 70001, 1001, 501, 10, '2024-09-15', 24000.00,  18.50, 36, 750.00,  20000.00, 0, 'Vigente'),
+(50002, 70002, 1002, 502, 10, '2024-09-20', 140000.00, 15.75, 60, 2800.00, 95000.00, 0, 'Vigente'),
+(50003, 70003, 1003, 503, 11, '2024-09-25', 8000.00,   22.00, 24, 400.00,  0.00,     0, 'Pagado');
+
+INSERT INTO pago (pago_id, prestamo_id, cliente_id, tipo_pago_id, fecha_pago, monto_pagado_bs, numero_cuota, dias_atraso_al_pago, estado_pago) VALUES
+(80001, 50001, 1001, 1, '2024-10-15', 750.00,  1, 0, 'Procesado'),
+(80002, 50001, 1001, 1, '2024-11-15', 750.00,  2, 0, 'Procesado'),
+(80003, 50002, 1002, 1, '2024-10-20', 2800.00, 1, 0, 'Procesado');
+
+INSERT INTO garantia (garantia_id, prestamo_id, tipo_garantia_id, descripcion_bien, valor_avaluo_bs, fecha_avaluo, cobertura_prestamo_porcentaje, estado_garantia) VALUES
+(9001, 50001, 1, 'Prenda: Equipo de Cómputo', 30000.00,  '2024-09-10', 120.00, 'Vigente'),
+(9002, 50002, 2, 'Hipoteca: Inmueble La Paz', 200000.00, '2024-09-12', 145.00, 'Vigente'),
+(9003, 50003, 3, 'Aval personal',             10000.00,  '2024-09-15', 100.00, 'Liberada');

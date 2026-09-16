@@ -1,0 +1,13 @@
+tabla;campo1;campo2;campo3;campo4;campo5
+tipo_empresa_rm;1;Sociedad Anónima;Empresa con acciones;;
+tipo_empresa_rm;2;SRL;Sociedad Responsabilidad Ltda;;
+tipo_empresa_rm;3;Empresa Unipersonal;Empresa de una sola persona;;
+empresa_registro_mercantil;E001;1234567-0;1;Constructora ANDINA S.A.;2010-03-15
+empresa_registro_mercantil;E002;2345678-1;2;Tech Solutions LTDA;2015-06-20
+empresa_registro_mercantil;E003;3456789-2;3;Empresa Unipersonal PEREZ;2018-01-10
+accionista_representante_rm;AC001;E001;4567891-0;Persona A;Accionista
+accionista_representante_rm;AC002;E001;5678902-1;Persona B;Gerente General
+accionista_representante_rm;AC003;E002;6789013-2;Persona C;Accionista
+situacion_tributaria_rm;ST001;E001;2024;0.00;Cumplidor;2024-10-01
+situacion_tributaria_rm;ST002;E002;2024;85000.00;Moroso;2024-10-01
+situacion_tributaria_rm;ST003;E003;2023;45000.00;Moroso;2024-10-01

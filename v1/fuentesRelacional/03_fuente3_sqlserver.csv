@@ -1,0 +1,13 @@
+tabla;campo1;campo2;campo3;campo4;campo5
+tipo_entidad_financiera;1;Banco;Entidad bancaria;;
+tipo_entidad_financiera;2;Cooperativa;Cooperativa financiera;;
+tipo_entidad_financiera;3;Financiera;Compañía financiera;;
+deudor_central_riesgos;DEU001;4567891-0;Natural;3;450000.00
+deudor_central_riesgos;DEU002;2345678-3;Natural;1;125000.00
+deudor_central_riesgos;DEU003;3456789-4;Jurídica;4;780000.00
+deuda_cr;D001;DEU001;EF001;Crédito Personal;125000.00
+deuda_cr;D002;DEU001;EF002;Tarjeta de Crédito;85000.00
+deuda_cr;D003;DEU002;EF001;Crédito Empresarial;125000.00
+score_riesgo_cr;SCR001;DEU001;Alto;35.00;2024-10-01
+score_riesgo_cr;SCR002;DEU002;Bajo;78.00;2024-10-01
+score_riesgo_cr;SCR003;DEU003;Alto;12.00;2024-10-01

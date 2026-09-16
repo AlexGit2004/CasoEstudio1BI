@@ -1,0 +1,16 @@
+tabla;campo1;campo2;campo3;campo4;campo5
+categoria_delito;1;Violento;Delitos contra la persona;;
+categoria_delito;2;Económico;Delitos económicos;;
+categoria_delito;3;Fraude;Fraude y estafa;;
+tipo_delito;1001;3;Estafa;ART-156;
+tipo_delito;1002;2;Incumplimiento Pago;ART-287;
+tipo_delito;1003;1;Violencia Intrafamiliar;ART-229;
+estado_proceso_penal;1;Investigación;false;;
+estado_proceso_penal;2;Juzgado;false;;
+estado_proceso_penal;3;Ejecutoria;true;;
+proceso_penal;P001;4567891-0;2023-00456-CPLT;1001;2;2024-09-20
+proceso_penal;P002;7234567-2;2022-00123-LPZT;1002;3;2024-08-15
+proceso_penal;P003;1234567-1;2024-00789-CZRZ;1003;1;2024-10-10
+consolidado_antecedentes;ANT001;4567891-0;true;1;1
+consolidado_antecedentes;ANT002;7234567-2;true;0;1
+consolidado_antecedentes;ANT003;1234567-1;true;1;1
